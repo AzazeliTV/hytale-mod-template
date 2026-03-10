@@ -1,0 +1,12 @@
+{
+    "Group": "kurashi",
+    "Name": "TemplateMod",
+    "Version": "${version}",
+    "Description": "${description}",
+    "Authors": [{ "Name": "Kurashi" }],
+    "ServerVersion": "*",
+    "Main": "de.kurashi.template.TemplateMod",
+    "Dependencies": {},
+    "OptionalDependencies": {},
+    "IncludesAssetPack": false
+}
