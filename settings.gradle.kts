@@ -1,1 +1,1 @@
-rootProject.name = "TemplateMod"
+rootProject.name = "KurashisGlideSpawn"

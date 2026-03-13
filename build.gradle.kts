@@ -5,7 +5,7 @@ plugins {
 
 group = "de.kurashi"
 version = "1.0.0"
-description = "Template Hytale Server Mod"
+description = "Spawn-Insel mit automatischem Gleiten und Boost"
 
 repositories {
     mavenCentral()
@@ -17,13 +17,7 @@ repositories {
 
 dependencies {
     compileOnly("com.hypixel.hytale:Server:+")
-
-    // Bundled dependencies (included in JAR via shadowJar):
-    // implementation("com.google.code.gson:gson:2.10.1")
-    // implementation("org.xerial:sqlite-jdbc:3.47.2.0")
-
-    // Compile-only mod dependencies (provided at runtime):
-    // compileOnly(files("libs/SomeMod-1.0.0.jar"))
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 tasks {
@@ -52,10 +46,7 @@ tasks {
     shadowJar {
         archiveBaseName.set(rootProject.name)
         archiveClassifier.set("")
-
-        // Relocate bundled libraries to avoid classpath conflicts:
-        // relocate("com.google.gson", "de.kurashi.template.libs.gson")
-
+        relocate("com.google.gson", "de.kurashi.glidespawn.libs.gson")
         minimize()
     }
 

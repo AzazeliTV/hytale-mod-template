@@ -1,11 +1,11 @@
 {
-    "Group": "kurashi",
-    "Name": "TemplateMod",
+    "Group": "Kurashi",
+    "Name": "GlideSpawn",
     "Version": "${version}",
     "Description": "${description}",
     "Authors": [{ "Name": "Kurashi" }],
     "ServerVersion": "*",
-    "Main": "de.kurashi.template.TemplateMod",
+    "Main": "de.kurashi.glidespawn.KurashisGlideSpawn",
     "Dependencies": {},
     "OptionalDependencies": {},
     "IncludesAssetPack": false
