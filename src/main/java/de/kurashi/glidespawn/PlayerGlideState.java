@@ -1,5 +1,7 @@
 package de.kurashi.glidespawn;
 
+import java.util.concurrent.ScheduledFuture;
+
 public class PlayerGlideState {
 
     // Gleitet der Spieler gerade?
@@ -16,4 +18,7 @@ public class PlayerGlideState {
 
     // War der letzte Bodenkontakt im Spawn-Radius? (Gleiten nur nach Absprung von der Insel)
     public volatile boolean cameFromSpawnRadius = false;
+
+    // Laufender Glide-Tick-Task (periodischer Vorwaertsimpuls)
+    public volatile ScheduledFuture<?> glideTask = null;
 }

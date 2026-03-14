@@ -19,10 +19,16 @@ public class GlideConfig {
     // Spieler bei JEDEM Betreten der Survival-Welt auf die Insel teleportieren?
     public boolean teleportOnJoin = false;
 
-    // MovementSettings fuer den Glide-Effekt
+    // MovementSettings fuer den Glide-Effekt (zusaetzlich zur nativen gliding-Physik)
     // Normal: airDragMax=0.995, airFrictionMax=0.045
     public float glideAirDragMax = 0.9998f;
     public float glideAirFrictionMax = 0.003f;
+
+    // Kraft des periodischen Vorwaertsimpulses (Elytra-Mechanik, pro Tick)
+    public double glideForwardForce = 3.0;
+
+    // Interval des Glide-Ticks in Millisekunden
+    public long glideTickIntervalMs = 100;
 
     // Mindest-Fallhoehe (in Bloecken) bevor Gleiten aktiviert wird.
     // Verhindert Aktivierung beim normalen Huepfen (~1-2 Bloecke).

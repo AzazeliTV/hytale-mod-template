@@ -34,6 +34,8 @@ import com.hypixel.hytale.server.core.util.NotificationUtil;
 import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle;
 
 import com.google.gson.reflect.TypeToken;
+import com.hypixel.hytale.protocol.MovementStates;
+import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -48,6 +50,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -99,6 +102,11 @@ public class KurashisGlideSpawn extends JavaPlugin {
         if (packetFilter != null) {
             PacketAdapters.deregisterInbound(packetFilter);
         }
+        for (PlayerGlideState state : states.values()) {
+            if (state.glideTask != null) {
+                state.glideTask.cancel(false);
+            }
+        }
         states.clear();
     }
 
@@ -115,8 +123,12 @@ public class KurashisGlideSpawn extends JavaPlugin {
         PlayerRef playerRef = event.getPlayerRef();
         PlayerGlideState state = states.remove(playerRef.getUuid());
 
-        // Falls der Spieler beim Disconnect noch gleitet, MovementSettings aufraumen
+        // Falls der Spieler beim Disconnect noch gleitet, Task + State aufraumen
         if (state != null && state.gliding) {
+            if (state.glideTask != null) {
+                state.glideTask.cancel(false);
+                state.glideTask = null;
+            }
             UUID worldUuid = playerRef.getWorldUuid();
             if (worldUuid == null) return;
             World world = Universe.get().getWorld(worldUuid);
@@ -223,6 +235,15 @@ public class KurashisGlideSpawn extends JavaPlugin {
         if (state.cameFromSpawnRadius && !onGround && !state.gliding && fallenEnough) {
             state.gliding = true;
             world.execute(() -> activateGlide(playerRef));
+            // Periodischen Vorwaertsimpuls starten (Elytra-Mechanik)
+            ScheduledFuture<?> task = HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+                UUID wUuid = playerRef.getWorldUuid();
+                if (wUuid == null) return;
+                World w = Universe.get().getWorld(wUuid);
+                if (w == null) return;
+                w.execute(() -> applyGlideTick(playerRef));
+            }, config.glideTickIntervalMs, config.glideTickIntervalMs, TimeUnit.MILLISECONDS);
+            state.glideTask = task;
         }
 
         // Boost: Spacebar gedrueckt (Flanke: war false, jetzt true) waehrend des Gleitens + Cooldown
@@ -237,6 +258,10 @@ public class KurashisGlideSpawn extends JavaPlugin {
         // Gleiten beenden: Spieler hat Boden beruehrt
         if (state.gliding && onGround) {
             state.gliding = false;
+            if (state.glideTask != null) {
+                state.glideTask.cancel(false);
+                state.glideTask = null;
+            }
             world.execute(() -> deactivateGlide(playerRef));
         }
 
@@ -265,14 +290,21 @@ public class KurashisGlideSpawn extends JavaPlugin {
         if (ref == null || !ref.isValid()) return;
         Store<EntityStore> store = ref.getStore();
 
-        MovementManager mm = store.getComponent(ref, MovementManager.getComponentType());
-        if (mm == null) return;
+        // Natives Hytale-Gleiten aktivieren (reduziert Schwerkraft automatisch)
+        MovementStatesComponent msComp = store.getComponent(ref, MovementStatesComponent.getComponentType());
+        if (msComp != null) {
+            msComp.getMovementStates().gliding = true;
+        }
 
-        MovementSettings s = mm.getSettings();
-        s.airDragMax = config.glideAirDragMax;
-        s.airFrictionMax = config.glideAirFrictionMax;
-        s.airControlMaxMultiplier = 6.0f;
-        mm.update(playerRef.getPacketHandler());
+        // MovementSettings zusaetzlich tweaken fuer sanfteres Fallen
+        MovementManager mm = store.getComponent(ref, MovementManager.getComponentType());
+        if (mm != null) {
+            MovementSettings s = mm.getSettings();
+            s.airDragMax = config.glideAirDragMax;
+            s.airFrictionMax = config.glideAirFrictionMax;
+            s.airControlMaxMultiplier = 6.0f;
+            mm.update(playerRef.getPacketHandler());
+        }
 
         if (config.notificationTitle != null && !config.notificationTitle.isEmpty()) {
             Message subtitle = (config.notificationSubtitle != null && !config.notificationSubtitle.isEmpty())
@@ -286,6 +318,28 @@ public class KurashisGlideSpawn extends JavaPlugin {
         }
     }
 
+    private void applyGlideTick(PlayerRef playerRef) {
+        Ref<EntityStore> ref = playerRef.getReference();
+        if (ref == null || !ref.isValid()) return;
+        Store<EntityStore> store = ref.getStore();
+
+        HeadRotation headRot = store.getComponent(ref, HeadRotation.getComponentType());
+        Velocity vel = store.getComponent(ref, Velocity.getComponentType());
+        if (headRot == null || vel == null) return;
+
+        // 3D-Vorwaertsrichtung aus Yaw + Pitch berechnen (Elytra-Mechanik)
+        float yaw = headRot.getRotation().y;
+        float pitch = headRot.getRotation().x;
+        double cosP = Math.cos(pitch);
+        Vector3d direction = new Vector3d(
+            -Math.sin(yaw) * cosP,
+            -Math.sin(pitch),       // neg Pitch = nach oben schauen = positives Y
+            Math.cos(yaw) * cosP
+        );
+        direction.scale(config.glideForwardForce);
+        vel.addInstruction(direction, null, ChangeVelocityType.Add);
+    }
+
     private void applyBoost(PlayerRef playerRef) {
         Ref<EntityStore> ref = playerRef.getReference();
         if (ref == null || !ref.isValid()) return;
@@ -295,12 +349,17 @@ public class KurashisGlideSpawn extends JavaPlugin {
         Velocity vel = store.getComponent(ref, Velocity.getComponentType());
         if (headRot == null || vel == null) return;
 
-        // Vorwaertsrichtung aus Blickrichtung (Yaw) berechnen
+        // 3D-Boost in Blickrichtung (Yaw + Pitch)
         float yaw = headRot.getRotation().y;
-        Vector3d forward = new Vector3d(0, 0, 1);
-        forward.rotateY(yaw);
-        forward.scale(config.boostForce);
-        vel.addInstruction(forward, null, ChangeVelocityType.Add);
+        float pitch = headRot.getRotation().x;
+        double cosP = Math.cos(pitch);
+        Vector3d direction = new Vector3d(
+            -Math.sin(yaw) * cosP,
+            -Math.sin(pitch),
+            Math.cos(yaw) * cosP
+        );
+        direction.scale(config.boostForce);
+        vel.addInstruction(direction, null, ChangeVelocityType.Add);
     }
 
     private void deactivateGlide(PlayerRef playerRef) {
@@ -308,11 +367,18 @@ public class KurashisGlideSpawn extends JavaPlugin {
         if (ref == null || !ref.isValid()) return;
         Store<EntityStore> store = ref.getStore();
 
-        MovementManager mm = store.getComponent(ref, MovementManager.getComponentType());
-        if (mm == null) return;
+        // Natives Gleiten beenden
+        MovementStatesComponent msComp = store.getComponent(ref, MovementStatesComponent.getComponentType());
+        if (msComp != null) {
+            msComp.getMovementStates().gliding = false;
+        }
 
-        mm.applyDefaultSettings();
-        mm.update(playerRef.getPacketHandler());
+        // MovementSettings zuruecksetzen
+        MovementManager mm = store.getComponent(ref, MovementManager.getComponentType());
+        if (mm != null) {
+            mm.applyDefaultSettings();
+            mm.update(playerRef.getPacketHandler());
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────
