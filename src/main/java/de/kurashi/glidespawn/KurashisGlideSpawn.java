@@ -33,13 +33,19 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.NotificationUtil;
 import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle;
 
+import com.google.gson.reflect.TypeToken;
+
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +58,10 @@ public class KurashisGlideSpawn extends JavaPlugin {
     private GlideConfig config;
     private final ConcurrentHashMap<UUID, PlayerGlideState> states = new ConcurrentHashMap<>();
 
+    // Spieler die die Spawn-Insel schon einmal betreten haben (persistent)
+    private final Set<UUID> firstJoinedPlayers = ConcurrentHashMap.newKeySet();
+    private Path firstJoinedFile;
+
     // PacketFilter-Referenz fuer sauberes Deregistrieren beim Shutdown
     private com.hypixel.hytale.server.core.io.adapter.PacketFilter packetFilter;
 
@@ -62,6 +72,8 @@ public class KurashisGlideSpawn extends JavaPlugin {
     @Override
     protected void setup() {
         loadConfig();
+        firstJoinedFile = getDataDirectory().resolve("firstjoined.json");
+        loadFirstJoined();
 
         getEventRegistry().registerGlobal(PlayerReadyEvent.class, this::onPlayerReady);
         getEventRegistry().register(PlayerDisconnectEvent.class, this::onPlayerDisconnect);
@@ -114,12 +126,22 @@ public class KurashisGlideSpawn extends JavaPlugin {
     }
 
     private void onAddToWorld(AddPlayerToWorldEvent event) {
-        if (!config.teleportOnJoin) return;
         if (!config.survivalWorldName.equals(event.getWorld().getName())) return;
 
         Holder<EntityStore> holder = event.getHolder();
         PlayerRef playerRef = holder.getComponent(PlayerRef.getComponentType());
         if (playerRef == null) return;
+
+        UUID uuid = playerRef.getUuid();
+        boolean shouldTeleport = config.teleportOnJoin
+                || (config.teleportOnFirstJoin && firstJoinedPlayers.add(uuid));
+
+        if (!shouldTeleport) return;
+
+        if (config.teleportOnFirstJoin && !config.teleportOnJoin) {
+            // UUID wurde gerade neu hinzugefuegt (add() gab true) -> persistieren
+            saveFirstJoinedAsync();
+        }
 
         World world = event.getWorld();
         // Kurzes Delay (500ms) damit der Spieler vollstaendig in der Welt registriert ist
@@ -127,6 +149,38 @@ public class KurashisGlideSpawn extends JavaPlugin {
             world.execute(() -> teleportToSpawn(playerRef, world)),
             500, TimeUnit.MILLISECONDS
         );
+    }
+
+    private void loadFirstJoined() {
+        if (!Files.exists(firstJoinedFile)) return;
+        try (Reader r = Files.newBufferedReader(firstJoinedFile, StandardCharsets.UTF_8)) {
+            Type listType = new TypeToken<List<String>>() {}.getType();
+            List<String> uuids = GSON.fromJson(r, listType);
+            if (uuids != null) {
+                for (String s : uuids) {
+                    try { firstJoinedPlayers.add(UUID.fromString(s)); }
+                    catch (IllegalArgumentException ignored) {}
+                }
+            }
+            getLogger().at(Level.INFO).log("firstjoined.json geladen: %d Eintraege", firstJoinedPlayers.size());
+        } catch (IOException e) {
+            getLogger().at(Level.WARNING).log("firstjoined.json konnte nicht gelesen werden: " + e.getMessage());
+        }
+    }
+
+    private void saveFirstJoinedAsync() {
+        List<String> snapshot = new ArrayList<>();
+        for (UUID uuid : firstJoinedPlayers) snapshot.add(uuid.toString());
+        HytaleServer.SCHEDULED_EXECUTOR.execute(() -> {
+            try {
+                Files.createDirectories(firstJoinedFile.getParent());
+                try (Writer w = Files.newBufferedWriter(firstJoinedFile, StandardCharsets.UTF_8)) {
+                    GSON.toJson(snapshot, w);
+                }
+            } catch (IOException e) {
+                getLogger().at(Level.WARNING).log("firstjoined.json konnte nicht gespeichert werden: " + e.getMessage());
+            }
+        });
     }
 
     // ──────────────────────────────────────────────────────────────────
@@ -155,8 +209,18 @@ public class KurashisGlideSpawn extends JavaPlugin {
         if (world == null) return;
         if (!config.survivalWorldName.equals(world.getName())) return;
 
-        // Gleiten aktivieren: im Spawn-Radius, in der Luft, noch nicht am Gleiten
-        if (inRadius && !onGround && !state.gliding) {
+        // Bodenkontakt tracken: Y-Position und ob man im Spawn-Radius stand merken
+        if (onGround) {
+            state.jumpStartY = packet.absolutePosition.y;
+            state.cameFromSpawnRadius = inRadius;
+        }
+
+        // Gleiten aktivieren: muss vom Spawn-Radius abgesprungen sein UND genug gefallen sein.
+        // "genug gefallen" verhindert Aktivierung beim normalen Huepfen (~1-2 Bloecke Hoehe).
+        boolean fallenEnough = !Double.isNaN(state.jumpStartY)
+                && (state.jumpStartY - packet.absolutePosition.y) >= config.minFallHeight;
+
+        if (state.cameFromSpawnRadius && !onGround && !state.gliding && fallenEnough) {
             state.gliding = true;
             world.execute(() -> activateGlide(playerRef));
         }

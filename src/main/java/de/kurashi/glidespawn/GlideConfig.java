@@ -13,13 +13,21 @@ public class GlideConfig {
     // Name der Survival-Welt
     public String survivalWorldName = "survival";
 
-    // Spieler beim Betreten der Survival-Welt auf die Insel teleportieren?
-    public boolean teleportOnJoin = true;
+    // Spieler beim ERSTEN Betreten der Survival-Welt auf die Insel teleportieren?
+    public boolean teleportOnFirstJoin = true;
+
+    // Spieler bei JEDEM Betreten der Survival-Welt auf die Insel teleportieren?
+    public boolean teleportOnJoin = false;
 
     // MovementSettings fuer den Glide-Effekt
     // Normal: airDragMax=0.995, airFrictionMax=0.045
     public float glideAirDragMax = 0.9998f;
     public float glideAirFrictionMax = 0.003f;
+
+    // Mindest-Fallhoehe (in Bloecken) bevor Gleiten aktiviert wird.
+    // Verhindert Aktivierung beim normalen Huepfen (~1-2 Bloecke).
+    // Ein echter Sprung von der Spawn-Insel faellt deutlich mehr.
+    public double minFallHeight = 5.0;
 
     // Boost-Kraft (Spacebar waehrend Gleiten)
     public double boostForce = 18.0;

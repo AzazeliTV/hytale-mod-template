@@ -10,4 +10,10 @@ public class PlayerGlideState {
 
     // Timestamp des letzten Boosts (fuer Cooldown)
     public volatile long lastBoostTime = 0;
+
+    // Y-Position beim letzten Bodenkontakt (fuer Fallhoehenberechnung)
+    public volatile double jumpStartY = Double.NaN;
+
+    // War der letzte Bodenkontakt im Spawn-Radius? (Gleiten nur nach Absprung von der Insel)
+    public volatile boolean cameFromSpawnRadius = false;
 }
