@@ -395,6 +395,8 @@ public class KurashisGlideSpawn extends JavaPlugin {
                 getLogger().at(Level.WARNING).log("Config-Fehler, nutze Defaults: " + e.getMessage());
                 config = new GlideConfig();
             }
+            // Immer zurueckschreiben: neue Felder aus Updates werden automatisch ergaenzt
+            saveConfig(configFile);
         } else {
             config = new GlideConfig();
             saveConfig(configFile);
