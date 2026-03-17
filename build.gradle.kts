@@ -17,6 +17,7 @@ repositories {
 
 dependencies {
     compileOnly("com.hypixel.hytale:Server:+")
+    compileOnly(files("../kurashi_lib/build/libs/KurashiLib.jar"))
     implementation("com.google.code.gson:gson:2.10.1")
 }
 
