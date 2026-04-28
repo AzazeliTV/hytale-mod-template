@@ -6,7 +6,7 @@
 # === Gradle Plugins ===
 shadow = "9.4.1"                 # 2026-03-27 — Fat-JAR Bundling
 spotbugs-plugin = "6.5.1"        # 2026-04-19 — Static Analysis
-spotless = "7.0.0"               # Formatter (8.x Major-Update verfuegbar, vor Migration testen)
+spotless = "8.4.0"               # 2026-03-18 — Formatter (mit aosp() fuer Java-Standard 4-Space-Indent)
 sonarqube = "7.2.3.7755"         # 2026-03-04 — SonarQube Scanner
 errorprone-plugin = "5.1.0"      # 2026-02-28 — Errorprone Gradle Plugin
 pitest-plugin = "1.19.0"         # 2026-03-29 — Mutation Testing

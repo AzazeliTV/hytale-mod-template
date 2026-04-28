@@ -150,7 +150,7 @@ spotbugs {
 // === Spotless: Google Java Format (manuell: ./gradlew spotlessApply) ===
 spotless {
     java {
-        googleJavaFormat()
+        googleJavaFormat().aosp()
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()

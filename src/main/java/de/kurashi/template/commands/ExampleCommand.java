@@ -8,17 +8,16 @@ import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayer
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-
 import javax.annotation.Nonnull;
 
 /**
- * Beispiel-Command als Starting-Point.
- * Registriert in TemplateMod.start() via getCommandRegistry().registerCommand(new ExampleCommand());
+ * Beispiel-Command als Starting-Point. Registriert in TemplateMod.start() via
+ * getCommandRegistry().registerCommand(new ExampleCommand());
  *
- * Spieler-spezifische Commands: AbstractPlayerCommand (braucht Player)
- * Konsolen-erlaubte Commands: AbstractCommand (funktioniert auch von Server-Konsole)
+ * <p>Spieler-spezifische Commands: AbstractPlayerCommand (braucht Player) Konsolen-erlaubte
+ * Commands: AbstractCommand (funktioniert auch von Server-Konsole)
  *
- * SubCommands via addSubCommand(new SubCmd()) im Constructor.
+ * <p>SubCommands via addSubCommand(new SubCmd()) im Constructor.
  */
 public class ExampleCommand extends AbstractPlayerCommand {
 
@@ -28,8 +27,12 @@ public class ExampleCommand extends AbstractPlayerCommand {
     }
 
     @Override
-    protected void execute(@Nonnull CommandContext ctx, @Nonnull Store<EntityStore> store,
-                           @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
+    protected void execute(
+            @Nonnull CommandContext ctx,
+            @Nonnull Store<EntityStore> store,
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull PlayerRef playerRef,
+            @Nonnull World world) {
         ctx.sendMessage(Message.raw("Hallo " + playerRef.getUsername() + "!").color("#55FF55"));
     }
 }
