@@ -4,6 +4,8 @@
     "Version": "${version}",
     "Description": "${description}",
     "Authors": [{ "Name": "Kurashi" }],
+    "Website": "",
+    "DisabledByDefault": false,
     "ServerVersion": "*",
     "Main": "de.kurashi.template.TemplateMod",
     "Dependencies": {},

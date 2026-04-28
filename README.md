@@ -35,13 +35,17 @@ description = "Was die Mod macht"
 ### 3. Java-Package umbenennen
 
 ```bash
-mkdir -p src/main/java/de/kurashi/meinemod
+mkdir -p src/main/java/de/kurashi/meinemod/events src/main/java/de/kurashi/meinemod/commands
 mv src/main/java/de/kurashi/template/TemplateMod.java \
    src/main/java/de/kurashi/meinemod/MeineMod.java
+mv src/main/java/de/kurashi/template/events/TemplateEventHandler.java \
+   src/main/java/de/kurashi/meinemod/events/MeineEventHandler.java
+mv src/main/java/de/kurashi/template/commands/ExampleCommand.java \
+   src/main/java/de/kurashi/meinemod/commands/MeineCommand.java
 rm -rf src/main/java/de/kurashi/template
 ```
 
-Package-Deklaration und Klassennamen in der Java-Datei anpassen.
+Package-Deklaration, Import-Pfade und Klassennamen in allen drei Java-Dateien anpassen. Die `requirePermission("template.use")`-Zeile in der Command-Klasse entsprechend anpassen.
 
 ### 4. Bauen + Deployen
 
@@ -58,15 +62,21 @@ deploy meinemod
 
 ```
 meine_mod/
-├── build.gradle.kts            # Build-Config (Kotlin DSL)
-├── settings.gradle.kts         # Mod-Name
-├── gradlew                     # Gradle Wrapper
-├── libs/                       # Lokale JAR-Dependencies (compileOnly)
+├── build.gradle.kts              # Build-Config (Kotlin DSL)
+├── settings.gradle.kts           # Mod-Name
+├── gradle.properties             # daemon/parallel/caching aktiv
+├── gradlew                       # Gradle Wrapper
+├── libs/                         # Lokale JAR-Dependencies (compileOnly)
 └── src/main/
-    ├── java/de/kurashi/...     # Mod-Code
+    ├── java/de/kurashi/meinemod/
+    │   ├── MeineMod.java         # Plugin-Entry (Lifecycle)
+    │   ├── events/               # Event-Handler (extern delegiert)
+    │   │   └── MeineEventHandler.java
+    │   └── commands/             # Command-Klassen
+    │       └── MeineCommand.java
     └── resources/
-        ├── manifest.json       # Hytale Mod Manifest
-        └── version.properties  # Version fuer Runtime-Zugriff
+        ├── manifest.json         # Hytale Mod Manifest (Website, DisabledByDefault)
+        └── version.properties    # Version fuer Runtime-Zugriff
 ```
 
 ## Mod-Lifecycle
@@ -89,3 +99,22 @@ meine_mod/
 - Bei bundled Dependencies: `relocate()` im shadowJar Block nutzen
 - Events: `registerGlobal()` fuer String-keyed, `register()` fuer Void-keyed
 - PlayerReadyEvent liefert `Player`, PlayerDisconnectEvent liefert `PlayerRef`
+
+## Package-Layout Konvention
+
+Das Template zeigt die empfohlene Struktur fuer bisher 12 aktive Mods:
+
+- **Root-Package** (`de.kurashi.meinemod`) — Nur der Plugin-Entry (erweitert `JavaPlugin`).
+- **`events/`** — Event-Handler als statische `registerAll(IEventRegistry)`-Methode gebuendelt. Logik in private static Methoden.
+- **`commands/`** — Jede Command-Klasse eine Datei. `AbstractPlayerCommand` fuer Spieler-Commands, `AbstractCommand` falls Konsole erlaubt. Sub-Commands via `addSubCommand()` im Constructor.
+
+Bei wachsenden Mods zusaetzliche Packages nach Domain (`ui/`, `db/`, `ecs/`, `util/`).
+
+## Manifest-Felder
+
+```json
+"Website": "",              // Optional, fuer spaetere CurseForge-Veroeffentlichung
+"DisabledByDefault": false, // Falls true: User muss per Command aktivieren
+"ServerVersion": "*",       // Hytale-Mindest-Version, "*" = alle
+"IncludesAssetPack": false  // true falls resources/ Hytale-Assets enthaelt
+```

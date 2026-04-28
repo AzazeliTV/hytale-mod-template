@@ -1,0 +1,58 @@
+# Hytale Mod Build-Toolchain — Stand 2026-04-27
+# Single-Source-of-Truth fuer alle Plugin- und Library-Versionen.
+# Bei Updates: aktuelle Versionen via `mcp__gradle__lookup_maven_versions` checken.
+
+[versions]
+# === Gradle Plugins ===
+shadow = "9.4.1"                 # 2026-03-27 — Fat-JAR Bundling
+spotbugs-plugin = "6.5.1"        # 2026-04-19 — Static Analysis
+spotless = "7.0.0"               # Formatter (8.x Major-Update verfuegbar, vor Migration testen)
+sonarqube = "7.2.3.7755"         # 2026-03-04 — SonarQube Scanner
+errorprone-plugin = "5.1.0"      # 2026-02-28 — Errorprone Gradle Plugin
+pitest-plugin = "1.19.0"         # 2026-03-29 — Mutation Testing
+dependencycheck = "12.2.1"       # 2026-04-11 — OWASP CVE Scanner
+
+# === Compile-time Tools ===
+errorprone-core = "2.49.0"       # 2026-04-07 — Errorprone Bug Patterns
+nullaway = "0.13.4"              # 2026-04-21 — Null-Safety
+
+# === Runtime Libraries (compileOnly im Hytale-Mod-Kontext) ===
+gson = "2.14.0"                  # 2026-04-23 — JSON Serialization
+sqlite-jdbc = "3.53.0.0"         # 2026-04-14 — SQLite JDBC Driver
+mysql-connector = "9.7.0"        # 2026-04-22 — MySQL JDBC Driver
+
+# === Test Stack — Java 25 supported ab diesen Versionen ===
+junit = "5.14.4"                 # JUnit Jupiter
+mockito = "5.23.0"               # Mockito (ByteBuddy 1.17 fuer Java 25 Class-File Major 69)
+jacoco = "0.8.14"                # Coverage (Java 25 supportet ab 0.8.14)
+spotbugs-tool = "4.9.8"          # SpotBugs Tool
+
+# === External APIs ===
+hytale-server = "+"              # Hytale Server API — version range, latest aus maven.hytale.com
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugs-plugin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }
+pitest = { id = "info.solidsoft.pitest", version.ref = "pitest-plugin" }
+dependencycheck = { id = "org.owasp.dependencycheck", version.ref = "dependencycheck" }
+
+[libraries]
+# Compile-time
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone-core" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+
+# Runtime (compileOnly im Hytale-Mod-Kontext, vom Server bereitgestellt)
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
+mysql-connector = { module = "com.mysql:mysql-connector-j", version.ref = "mysql-connector" }
+
+# Test
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+# External
+hytale-server = { module = "com.hypixel.hytale:Server", version.ref = "hytale-server" }
