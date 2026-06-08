@@ -106,14 +106,19 @@ java {
 }
 
 // === Tests + Coverage ===
-// HINWEIS Java 25 + HytaleLogger: Klassen mit `private static final HytaleLogger LOGGER` erfordern
-// `java.util.logging.manager` System-Property bei Tests. Mockito KANN Klassen mit static-Init der
-// Hytale-Komponenten oft nicht mocken. Pragmatisches Pattern: Pure-Logic in eigene Klasse OHNE
-// Logger auslagern (z.B. `XxxLogic.java`) und diese testen. Beispiel: kurashis_profile/data/StreakLogic.
+// HINWEIS Java 25 + HytaleLogger: Klassen mit `private static final HytaleLogger LOGGER` brauchen
+// die `java.util.logging.manager`-Property mit dem KORREKTEN Klassennamen inkl. `.backend`:
+//   com.hypixel.hytale.logger.backend.HytaleLogManager
+// Der frueher genutzte `com.hypixel.hytale.logger.HytaleLogManager` (ohne `.backend`) EXISTIERT NICHT
+// -> JUL faellt still auf den Default-LogManager zurueck -> HytaleLogger-static-Init wirft
+// ExceptionInInitializerError ("Log manager wasn't set"). MIT korrektem Namen laden Logger-Klassen
+// sauber und sind direkt instanziierbar/mockbar — kein Pure-Logic-Auslagern noetig fuer Testbarkeit.
+// (Das `XxxLogic.java`-Pattern bleibt als Design-Trennung ok, ist aber nicht mehr Pflicht.)
+// Verifiziert 2026-06-08: kurashi_lib 314 Tests + HytaleLoggerMockabilityTest gruen.
 tasks.test {
     useJUnitPlatform()
     systemProperty("net.bytebuddy.experimental", "true")
-    systemProperty("java.util.logging.manager", "com.hypixel.hytale.logger.HytaleLogManager")
+    systemProperty("java.util.logging.manager", "com.hypixel.hytale.logger.backend.HytaleLogManager")
     finalizedBy(tasks.jacocoTestReport)
 }
 
