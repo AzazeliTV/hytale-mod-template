@@ -9,6 +9,8 @@ build/
 .settings/
 .project
 .classpath
+bin/
+out/
 
 # Local dependencies
 libs/
