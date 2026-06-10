@@ -71,6 +71,10 @@ tasks {
     processResources {
         filteringCharset = Charsets.UTF_8.name()
 
+        // xaml2ui legt <out>.events.java neben die generierte .ui in resources —
+        // Snippet-Datei fuer den Entwickler, gehoert nicht ins JAR
+        exclude("**/*.events.java")
+
         val props = mapOf(
             "group" to project.group,
             "version" to project.version,

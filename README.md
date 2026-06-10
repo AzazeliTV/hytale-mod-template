@@ -58,6 +58,29 @@ chmod +x gradlew
 deploy meinemod
 ```
 
+## UI bauen (XAML-first)
+
+Neue UIs starten als XAML, nie als handgeschriebene `.ui`. Seed liegt in
+`src/main/xaml/ExamplePage.xaml` (bewusst NICHT in `resources/`, sonst landet
+die XAML im JAR):
+
+```bash
+xaml2ui src/main/xaml/ExamplePage.xaml \
+    -o src/main/resources/Common/UI/Custom/Pages/MeineMod/ExamplePage.ui \
+    --theme aether    # oder: classic (Gold/Dark-Fantasy-Hauptlane)
+```
+
+- **XAML ist die Quelle** — generierte `.ui` nie von Hand editieren, immer
+  XAML aendern + neu generieren. Auto-validiert via KurashiEditor (Exit 2 = Errors).
+- Event-Handler (`Click=`, `Toggled=`, ...) erzeugen `<out>.events.java` mit
+  fertigen `addEventBinding`-Snippets fuer `InteractiveCustomUIPage.build()` —
+  Snippets uebernehmen, Datei loeschen (Build excludet sie ohnehin).
+- Sichtpruefung: `ui-render <out>.ui /tmp/x.png` | Layout-Check: `ui-measure <out>.ui --check-only`
+- Subset-Doku: `xaml2ui` ohne Argumente | Beispiel-Korpus: `~/hytale_mods/design/kurashi_lib/_xaml-experiment/`
+- `manifest.json`: bei UI-Mods `"IncludesAssetPack": true` setzen.
+- Nur fuer Konstrukte ausserhalb des Subsets: erst `hy:`-Raw-Passthrough
+  (`xmlns:hy="hytale"`) probieren, dann bewusst rohe `.ui` (ui-design-Skill).
+
 ## Projektstruktur
 
 ```
@@ -74,6 +97,8 @@ meine_mod/
     │   │   └── MeineEventHandler.java
     │   └── commands/             # Command-Klassen
     │       └── MeineCommand.java
+    ├── xaml/
+    │   └── ExamplePage.xaml      # UI-Quelle (XAML-first, generiert die .ui)
     └── resources/
         ├── manifest.json         # Hytale Mod Manifest (Website, DisabledByDefault)
         └── version.properties    # Version fuer Runtime-Zugriff
