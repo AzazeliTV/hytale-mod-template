@@ -28,7 +28,7 @@ jacoco = "0.8.14"                # Coverage (Java 25 supportet ab 0.8.14)
 spotbugs-tool = "4.9.8"          # SpotBugs Tool
 
 # === External APIs ===
-hytale-server = "0.5.3"   # Hytale Server API — U5 stable Hotfix (2026-05-29). Konkret pinnen (Range conflicted mit alten Datum-Strings). 0.5.2->0.5.3 = 0 API-Changes (reiner Gameplay-Hotfix)
+hytale-server = "0.5.7"   # Hytale Server API — U5 stable (2026-07-19). Konkret pinnen (Range conflicted mit alten Datum-Strings). 0.5.3 wurde aus dem Maven-Repo entfernt; 0.5.3->0.5.7 = 0 Breaking Changes (nur additiv: ItemStack.cleanCopy)
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
