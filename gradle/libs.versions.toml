@@ -4,28 +4,28 @@
 
 [versions]
 # === Gradle Plugins ===
-shadow = "9.4.1"                 # 2026-03-27 — Fat-JAR Bundling
-spotbugs-plugin = "6.5.1"        # 2026-04-19 — Static Analysis
-spotless = "8.4.0"               # 2026-03-18 — Formatter (mit aosp() fuer Java-Standard 4-Space-Indent)
-sonarqube = "7.2.3.7755"         # 2026-03-04 — SonarQube Scanner
+shadow = "9.6.1"                 # 2026-07-22 — Fat-JAR Bundling
+spotbugs-plugin = "6.5.10"       # 2026-08-05 — Static Analysis
+spotless = "8.9.0"               # 2026-07-27 — Formatter (mit aosp() fuer Java-Standard 4-Space-Indent)
+sonarqube = "7.4.0.8496"         # 2026-08-06 — SonarQube Scanner
 errorprone-plugin = "5.1.0"      # 2026-02-28 — Errorprone Gradle Plugin
 pitest-plugin = "1.19.0"         # 2026-03-29 — Mutation Testing
 dependencycheck = "12.2.1"       # 2026-04-11 — OWASP CVE Scanner
 
 # === Compile-time Tools ===
-errorprone-core = "2.49.0"       # 2026-04-07 — Errorprone Bug Patterns
-nullaway = "0.13.4"              # 2026-04-21 — Null-Safety
+errorprone-core = "2.50.0"       # 2026-06-10 — Errorprone Bug Patterns
+nullaway = "0.13.8"              # 2026-07-19 — Null-Safety
 
 # === Runtime Libraries (compileOnly im Hytale-Mod-Kontext) ===
 gson = "2.14.0"                  # 2026-04-23 — JSON Serialization
-sqlite-jdbc = "3.53.0.0"         # 2026-04-14 — SQLite JDBC Driver
+sqlite-jdbc = "3.53.2.1"         # 2026-07-21 — SQLite JDBC Driver
 mysql-connector = "9.7.0"        # 2026-04-22 — MySQL JDBC Driver
 
 # === Test Stack — Java 25 supported ab diesen Versionen ===
 junit = "5.14.4"                 # JUnit Jupiter
 mockito = "5.23.0"               # Mockito (ByteBuddy 1.17 fuer Java 25 Class-File Major 69)
-jacoco = "0.8.14"                # Coverage (Java 25 supportet ab 0.8.14)
-spotbugs-tool = "4.9.8"          # SpotBugs Tool
+jacoco = "0.8.15"                # 2026-06-04 — Coverage (Java 25 supportet ab 0.8.14)
+spotbugs-tool = "4.10.3"         # 2026-07-12 — SpotBugs Tool
 
 # === External APIs ===
 hytale-server = "0.5.9"   # Hytale Server API - U5 stable (2026-08-14). Konkret pinnen (Range conflicted mit alten Datum-Strings). 0.5.3 + 0.5.4 wurden aus dem Maven-Repo entfernt; verfuegbar: 0.5.5-0.5.9. 0.5.7->0.5.9 = 0 Breaking Changes (Klassenliste identisch, nur 6 interne Klassen mit geaendertem Bytecode: HytaleGenerator-Editor + QuicheNative; 0.5.8->0.5.9 = 0 Klassen-Diff)
