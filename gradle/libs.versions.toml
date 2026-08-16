@@ -28,7 +28,7 @@ jacoco = "0.8.14"                # Coverage (Java 25 supportet ab 0.8.14)
 spotbugs-tool = "4.9.8"          # SpotBugs Tool
 
 # === External APIs ===
-hytale-server = "0.5.7"   # Hytale Server API — U5 stable (2026-07-19). Konkret pinnen (Range conflicted mit alten Datum-Strings). 0.5.3 wurde aus dem Maven-Repo entfernt; 0.5.3->0.5.7 = 0 Breaking Changes (nur additiv: ItemStack.cleanCopy)
+hytale-server = "0.5.9"   # Hytale Server API - U5 stable (2026-08-14). Konkret pinnen (Range conflicted mit alten Datum-Strings). 0.5.3 + 0.5.4 wurden aus dem Maven-Repo entfernt; verfuegbar: 0.5.5-0.5.9. 0.5.7->0.5.9 = 0 Breaking Changes (Klassenliste identisch, nur 6 interne Klassen mit geaendertem Bytecode: HytaleGenerator-Editor + QuicheNative; 0.5.8->0.5.9 = 0 Klassen-Diff)
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
