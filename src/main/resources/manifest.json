@@ -6,7 +6,7 @@
     "Authors": [{ "Name": "Kurashi" }],
     "Website": "",
     "DisabledByDefault": false,
-    "ServerVersion": "*",
+    "ServerVersion": ">=0.6.8 <0.7.0",
     "Main": "de.kurashi.template.TemplateMod",
     "Dependencies": {},
     "OptionalDependencies": {},

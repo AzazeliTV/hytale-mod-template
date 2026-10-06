@@ -1,15 +1,26 @@
 # Hytale Mod Template
 
-Skelett fuer neue Hytale Server-Mods.
+Skelett fuer neue Hytale Server-Mods. Build-Quelle: `build.gradle.kts`,
+Versionen: `gradle/libs.versions.toml`, Wrapper: `gradle/wrapper/gradle-wrapper.properties`.
+Projekt-Catalog-Pin und laufende Serverversion getrennt pruefen.
 
 ## Schnellstart
 
 ### 1. Template kopieren
 
 ```bash
-cp -r ~/hytale_mods/template ~/hytale_mods/active/meine_mod
-cd ~/hytale_mods/active/meine_mod
+NEW_MOD="$HOME/hytale_mods/active/meine_mod"
+test ! -e "$NEW_MOD" || { printf 'Ziel existiert bereits: %s\n' "$NEW_MOD" >&2; exit 1; }
+mkdir -p "$NEW_MOD"
+rsync -a --exclude=.git --exclude=.gradle --exclude=build \
+    "$HOME/hytale_mods/template/" "$NEW_MOD/"
+cd "$NEW_MOD"
 ```
+
+Der aktuelle Workingtree ist die Vorlage, damit noch uncommittete Pins und
+Manifest-Fixes mitkommen. `.git` kann auch eine Submodul-Verweisdatei sein und
+wird ebenfalls ausgeschlossen. Nicht aus `git archive HEAD` kopieren: das
+wuerde uncommittete Template-Pflege verlieren.
 
 ### 2. Anpassen
 
@@ -47,16 +58,18 @@ rm -rf src/main/java/de/kurashi/template
 
 Package-Deklaration, Import-Pfade und Klassennamen in allen drei Java-Dateien anpassen. Die `requirePermission("template.use")`-Zeile in der Command-Klasse entsprechend anpassen.
 
-### 4. Bauen + Deployen
+### 4. Bauen und pruefen
 
 ```bash
 chmod +x gradlew
 ./gradlew build
 # JAR liegt in build/libs/MeineMod-1.0.0.jar
 
-# Oder mit deploy-Tool:
-deploy meinemod
+# Bei beauftragtem Test-Deploy danach: deploy meine_mod
 ```
+
+Gradle-Exit-Code und Testreports auswerten; Deployment/Restart gehoeren zum
+passenden Serverauftrag. Claude-Hooks laufen nicht automatisch in Codex.
 
 ## UI bauen (XAML-first)
 
@@ -67,10 +80,10 @@ die XAML im JAR):
 ```bash
 xaml2ui src/main/xaml/ExamplePage.xaml \
     -o src/main/resources/Common/UI/Custom/Pages/MeineMod/ExamplePage.ui \
-    --theme aether    # oder: classic (Gold/Dark-Fantasy-Hauptlane)
+    --theme classic    # Gold/Dark-Fantasy-Hauptlane; aether als weiterer Skin
 ```
 
-- **XAML ist die Quelle** — generierte `.ui` nie von Hand editieren, immer
+- **XAML ist hier die Build-Quelle** — generierte `.ui` nie von Hand editieren, immer
   XAML aendern + neu generieren. Auto-validiert via KurashiEditor (Exit 2 = Errors).
 - Event-Handler (`Click=`, `Toggled=`, ...) erzeugen `<out>.events.java` mit
   fertigen `addEventBinding`-Snippets fuer `InteractiveCustomUIPage.build()` —
@@ -80,6 +93,8 @@ xaml2ui src/main/xaml/ExamplePage.xaml \
 - `manifest.json`: bei UI-Mods `"IncludesAssetPack": true` setzen.
 - Nur fuer Konstrukte ausserhalb des Subsets: erst `hy:`-Raw-Passthrough
   (`xmlns:hy="hytale"`) probieren, dann bewusst rohe `.ui` (ui-design-Skill).
+- `.noesis.xaml`-Twins und Browser-Previews sind Designartefakte; eine native
+  Hytale-XAML-Modding-API vor einer Runtime-Migration separat nachweisen.
 
 ## Projektstruktur
 
@@ -88,7 +103,12 @@ meine_mod/
 ├── build.gradle.kts              # Build-Config (Kotlin DSL)
 ├── settings.gradle.kts           # Mod-Name
 ├── gradle.properties             # daemon/parallel/caching aktiv
+├── gradle/
+│   ├── libs.versions.toml        # Gepinnte Dependencies und Plugins
+│   └── wrapper/                  # Wrapper-JAR und -Properties
 ├── gradlew                       # Gradle Wrapper
+├── gradlew.bat                   # Windows Wrapper
+├── .gitignore                    # Build-/Cache-/IDE-Dateien ausschliessen
 ├── libs/                         # Lokale JAR-Dependencies (compileOnly)
 └── src/main/
     ├── java/de/kurashi/meinemod/
@@ -127,7 +147,8 @@ meine_mod/
 
 ## Package-Layout Konvention
 
-Das Template zeigt die empfohlene Struktur fuer bisher 12 aktive Mods:
+Das Template zeigt die empfohlene Struktur. Aktive Projekte ueber den
+[Workspace-Einstieg](../CLAUDE.md) und das reale `active/`-Inventar bestimmen:
 
 - **Root-Package** (`de.kurashi.meinemod`) — Nur der Plugin-Entry (erweitert `JavaPlugin`).
 - **`events/`** — Event-Handler als statische `registerAll(IEventRegistry)`-Methode gebuendelt. Logik in private static Methoden.
@@ -140,6 +161,10 @@ Bei wachsenden Mods zusaetzliche Packages nach Domain (`ui/`, `db/`, `ecs/`, `ut
 ```json
 "Website": "",              // Optional, fuer spaetere CurseForge-Veroeffentlichung
 "DisabledByDefault": false, // Falls true: User muss per Command aktivieren
-"ServerVersion": "*",       // Hytale-Mindest-Version, "*" = alle
+"ServerVersion": ">=0.6.8 <0.7.0", // aktuelle Zielversion; keine Rueckwaertskompatibilitaet behaupten
 "IncludesAssetPack": false  // true falls resources/ Hytale-Assets enthaelt
 ```
+
+`ServerVersion` ist ein Kompatibilitaetsvertrag; bei einem neuen Ziel
+zusammen mit Catalog-Pin, Build und passenden Tests pruefen. Die Angabe
+oben entspricht dem Workspace-Refresh vom 04.10.2026.
